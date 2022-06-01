@@ -17,7 +17,7 @@ function() {
   as.data.frame(reviews_collection$find())
 }
 
-#* Returns all Reviews from a specific user
+#* Returns all Reviews from a specific user on the site
 #* @param author user who wrote reviews
 #* @get /allReviewsByUser
 function(author) {
