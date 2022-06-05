@@ -50,7 +50,7 @@ function(card, author, numStars, description) {
   val <- data.frame(card, author, numStars = strtoi(numStars, base=0L), 
                     description, stringsAsFactors=FALSE)
   
-  reviews_collection$insert(val)
+  #reviews_collection$insert(val)
   
   reviews_collection$update(paste0('{"card":"', card, '", "author":"', author, '"}'), 
                             paste0('{"$set":{"numStars":', numStars, ', "description":"', 
