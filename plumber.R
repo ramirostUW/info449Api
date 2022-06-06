@@ -73,3 +73,15 @@ function(reviewCard,reviewAuthor, commentAuthor, comment) {
   val
 }
 
+#* Returns cards by rating
+#* @get /cardsbyRating
+function() {
+  #as.data.frame(classes_collection$find())
+  ratings <- as.data.frame(reviews_collection$find()) %>% group_by(card) %>% summarize_at(vars(numStars), mean)
+  colnames(ratings) <- c('name', 'avgStars')
+  returnVal<- ratings[order(ratings$avgStars,decreasing = TRUE), ]
+  
+  returnVal[is.na(returnVal$avgStars),]$avgStars <- 0
+  
+  returnVal
+}
