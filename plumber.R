@@ -6,6 +6,7 @@ library(mongolite)
 connection_string = 'mongodb+srv://info449:info449@cluster0.tlydu.mongodb.net/?retryWrites=true&w=majority'
 reviews_collection = mongo(collection="reviews", db="info449FinalProject", url=connection_string)
 comments_collection = mongo(collection="comments", db="info449FinalProject", url=connection_string)
+card_list_collection = mongo(collection="cardList", db="info449FinalProject", url=connection_string)
 
 #* @apiTitle FinaLApp API
 #* @apiDescription API for our 449 Final Project
@@ -49,8 +50,8 @@ function(card, author) {
 function(card, author, numStars, description) {
   val <- data.frame(card, author, numStars = strtoi(numStars, base=0L), 
                     description, stringsAsFactors=FALSE)
-  
-  #reviews_collection$insert(val)
+  comments_collection$remove(paste0('{"reviewCard":"', card, '", 
+                                                "reviewAuthor":"', author, '"}'))
   
   reviews_collection$update(paste0('{"card":"', card, '", "author":"', author, '"}'), 
                             paste0('{"$set":{"numStars":', numStars, ', "description":"', 
@@ -73,15 +74,32 @@ function(reviewCard,reviewAuthor, commentAuthor, comment) {
   val
 }
 
-#* Returns cards by rating
+#* Returns cards in descending order of rating
 #* @get /cardsbyRating
 function() {
-  #as.data.frame(classes_collection$find())
   ratings <- as.data.frame(reviews_collection$find()) %>% group_by(card) %>% summarize_at(vars(numStars), mean)
   colnames(ratings) <- c('name', 'avgStars')
-  returnVal<- ratings[order(ratings$avgStars,decreasing = TRUE), ]
-  
+  returnVal<- as.data.frame(card_list_collection$find())
+  ratings_summary<- ratings[order(ratings$avgStars,decreasing = TRUE), ]
+  returnVal <- left_join(returnVal, ratings_summary, by = "name")
   returnVal[is.na(returnVal$avgStars),]$avgStars <- 0
+  
+  returnVal<- returnVal[order(returnVal$avgStars,decreasing = TRUE), ]
+  
+  returnVal
+}
+
+#* Returns cards in descending order of rating
+#* @get /cardsbyAlphabetical
+function() {
+  ratings <- as.data.frame(reviews_collection$find()) %>% group_by(card) %>% summarize_at(vars(numStars), mean)
+  colnames(ratings) <- c('name', 'avgStars')
+  returnVal<- as.data.frame(card_list_collection$find())
+  ratings_summary<- ratings[order(ratings$avgStars,decreasing = TRUE), ]
+  returnVal <- left_join(returnVal, ratings_summary, by = "name")
+  returnVal[is.na(returnVal$avgStars),]$avgStars <- 0
+  
+  returnVal<- returnVal[order(returnVal$name,decreasing = FALSE), ]
   
   returnVal
 }
